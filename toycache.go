@@ -14,10 +14,6 @@ type Clock interface {
 	Now() time.Time
 }
 
-type TickerClock interface {
-	advance(amount time.Duration)
-}
-
 const unlimitedSize = -1
 const noWriteTTL = 0
 
