@@ -1,6 +1,9 @@
 package toycache
 
-import "testing"
+import (
+	"testing"
+	"time"
+)
 import "github.com/stretchr/testify/assert"
 
 func TestEmptyState(t *testing.T) {
@@ -45,4 +48,31 @@ func TestCappedByMaxSizeRemovingOldestFirst(t *testing.T) {
 	assert.Equal(t, 2, secondVal)
 	assert.True(t, thirdOk)
 	assert.Equal(t, 3, thirdVal)
+}
+
+func TestRespectsWriteTTL(t *testing.T) {
+	// given
+	clock := &fakeClock{}
+	cache := New(WriteTTL(10*time.Millisecond), WithClock(clock))
+	cache.Put("a", 1)
+
+	// when
+	clock.advance(20 * time.Millisecond)
+	_, ok := cache.Get("a")
+
+	// then
+	assert.False(t, ok)
+}
+
+type fakeClock struct {
+	init     time.Time
+	advanced time.Duration
+}
+
+func (fc *fakeClock) Now() time.Time {
+	return fc.init.Add(fc.advanced)
+}
+
+func (fc *fakeClock) advance(duration time.Duration) {
+	fc.advanced += duration
 }
